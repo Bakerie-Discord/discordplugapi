@@ -1,0 +1,15 @@
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0"]
+
+[tool]
+[tool.poetry]
+authors = ["actualdankcoder <business.dankcoder@gmail.com>"]
+description = "discordplugapi is an easy to setup REST API to expose your discord presence"
+license = "MIT"
+name = "discordplugapi"
+version = "0.1.0"
+[tool.poetry.dependencies]
+python = "^3.8"
+blacksheep = "^1.2.2"
+[tool.poetry.dev-dependencies]
