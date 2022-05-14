@@ -16,6 +16,10 @@ app.use_cors(
     max_age=300,
 )
 
+async def was_rest(bot, GUID, uid):
+  print("Rest FETCH")
+  await bot.rest.fetch_member(GUID, uid)
+  
 @app.route("/")
 async def wow(request):
   return pretty_json({
@@ -25,7 +29,7 @@ async def wow(request):
 async def home(request,uid):
     uid=clean_uid(uid)
     try:
-        user=bot.cache.get_member(GUID, uid) or await bot.rest.fetch_member(GUID, uid)
+        user=bot.cache.get_member(GUID, uid) or await was_rest(bot, GUID, uid)
     except hikari.errors.NotFoundError:
         user=None
     if user:
