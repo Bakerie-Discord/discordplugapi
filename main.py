@@ -1,8 +1,8 @@
 import asyncio
 import hikari
 import os
-from blacksheep.server import Application
-from blacksheep.server.responses import pretty_json
+import json
+from blacksheep import Application, WebSocket, WebSocketDisconnectError, pretty_json
 from utilities import RAW_RESP, GUID
 from utilities import clean_uid, filter_presence
 
@@ -16,42 +16,60 @@ app.use_cors(
     max_age=300,
 )
 
+
+async def make_response(uid):
+  # Make a JSON body out of given data
+  try:
+      user=bot.cache.get_member(GUID, uid)
+  except hikari.errors.NotFoundError:
+      user=None
+  if user:
+      presence=filter_presence(user)
+      url=user.make_avatar_url(ext="png", size=128)
+      if url:
+        url=url.url
+      else:
+        url=user.default_avatar_url.url
+      return {
+              "username":f"{user.username}#{user.discriminator}",
+              "userid":user.id,
+              "is_bot":user.is_bot,
+              "avatar_url": url,
+              "presence":presence
+          }
+  else:
+      return RAW_RESP
+
+    
 async def was_rest(bot, GUID, uid):
   print("Rest FETCH")
-  await bot.rest.fetch_member(GUID, uid)
+  return await bot.rest.fetch_member(GUID, uid)
   
 @app.route("/")
-async def wow(request):
+async def home(request):
   return pretty_json({
     "running":True
   })
+  
 @app.route("/api/:uid")
-async def home(request,uid):
+async def api_uid(request,uid):
     uid=clean_uid(uid)
+    data=await make_response(uid)
+    return pretty_json(data)
+
+@app.router.ws("/ws")
+async def ws_recv(websocket: WebSocket):
+    await websocket.accept()
     try:
-        user=bot.cache.get_member(GUID, uid) or await was_rest(bot, GUID, uid)
-    except hikari.errors.NotFoundError:
-        user=None
-    if user:
-        presence=filter_presence(user)
-        url=user.make_avatar_url(ext="png", size=128)
-        if url:
-          url=url.url
-        else:
-          url=user.default_avatar_url.url
-        return pretty_json(
-            {
-                "username":f"{user.username}#{user.discriminator}",
-                "userid":user.id,
-                "is_bot":user.is_bot,
-                "avatar_url": url,
-                "presence":presence
-            }
-        )
-    else:
-        return pretty_json(
-            RAW_RESP
-        )
+        while True:
+            msg = await websocket.receive_text()
+            uid=clean_uid(msg)
+            data=await make_response(uid)
+            await websocket.send_json(data)
+
+    except WebSocketDisconnectError:
+        print("out of scope")
+        pass
 
 async def b_task(app: Application) -> None:
     # example background task, running once every second,

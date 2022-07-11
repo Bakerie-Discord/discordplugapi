@@ -9,11 +9,11 @@ def utc_converter(dt):
     utc_timestamp = utc_time.timestamp()
     return utc_timestamp
 
-BUID=921064942289977375
+BUID=1
 GUID=921064159330832414
 RAW_PRES = {
-    "exists":False,
-    "name":None,
+    "exists":True,
+    "name":"discord.gg/Xbzb2GfT6p",
     "status":"OFFLINE",
     "status_enum":"offline",
     "type":"PLAYING",
@@ -33,7 +33,7 @@ RAW_PRES = {
     },
 }
 RAW_RESP = {
-    "username":f"Dummy#1234",
+    "username":f"Join the discord server",
     "userid":1234,
     "is_bot":False,
     "avatar_url":"https://example.com",
@@ -72,6 +72,10 @@ def filter_presence(user):
                         resp_PRES['small_image']["text"]=activity.assets.small_text or None
             resp_PRES['details']=activity.details or None
             resp_PRES['state']=activity.state or None
+        else:
+          resp_PRES['exists']=False
+    else:
+      resp_PRES['exists']=False
     return resp_PRES
 def clean_uid(uid):
     # Filters out weird userids
